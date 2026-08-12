@@ -1,0 +1,6 @@
+{
+  "name": "Stone Wolf Voxel Turnaround Sheet",
+  "description": "A four-view turnaround sheet and interactive inspector for a blocky stone wolf voxel model.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
