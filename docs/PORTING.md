@@ -6,20 +6,27 @@ This document details the core architecture, data structures, model JSON schema,
 
 ## 1. Core System Architecture
 
-The application is built on a modular TypeScript and HTML5 Canvas architecture designed for zero-latency orthographic, isometric, and 3D rendering of voxel matrices.
+The repository `src/` directory contains the following files:
 
 ```
 src/
+├── App.tsx                      # Root application UI component
+├── index.css                    # Tailwind CSS imports & global styles
+├── main.tsx                     # DOM entry point
 ├── types.ts                      # Core interfaces (Voxel, WolfPose, MossDensity)
+├── vite-env.d.ts                # Vite environment type declarations
+├── components/
+│   ├── Interactive3DViewer.tsx  # Interactive 3D orbit inspection canvas
+│   ├── TurnaroundCanvas.tsx     # 4-Cell Orthographic/Isometric HTML5 Canvas with idle animation
+│   └── VoxelInspector.tsx       # Model stats, pose switcher, color specs, & exporter
 ├── core/
-│   ├── palette.ts               # Centralized specification color palette
-│   └── iso.ts                   # Isometric projection & neighbor face culling engine
+│   ├── iso.ts                   # Isometric projection & neighbor face culling engine
+│   ├── model.ts                 # VoxelModel, ModelPart, & Box schema interfaces/validator
+│   ├── palette.ts               # Color palette calculation & petrify engine
+│   ├── runCheck.ts              # CLI runner for self-check validations
+│   └── selfCheck.ts             # Core self-check test suite
 ├── data/
 │   └── stoneWolfModel.ts        # Parametric voxel generator for Standing, Sleeping, & Howling
-├── components/
-│   ├── TurnaroundCanvas.tsx     # 4-Cell Orthographic/Isometric HTML5 Canvas with idle animation
-│   ├── Interactive3DViewer.tsx  # Interactive 3D orbit inspection canvas
-│   └── VoxelInspector.tsx       # Model stats, pose switcher, color specs, & exporter
 └── utils/
     └── exportUtils.ts           # Exporters for PNG, SVG, .OBJ, and JSON
 ```
@@ -58,11 +65,11 @@ export interface Voxel {
 
 | Face / Direction | Rock Hex Code | Moss Hex Code | Purpose / Shading Role |
 | :--- | :--- | :--- | :--- |
-| **Top Faces (+Y)** | `#818789` | `#6BA351` | Brightest highlight face |
-| **Front/Back Faces (±Z)** | `#585D5E` | `#5C8F45` | Mid-tone angled face shade |
-| **Left/Right Faces (±X)** | `#424647` | `#4A7537` | Darkest side shadow face |
+| **Top Faces (+Y)** | `#81888A` | `#6CA751` | Brightest highlight face |
+| **Front/Back Faces (±Z)** | `#6E7476` | `#5C8F45` | Mid-tone reference face shade |
+| **Left/Right Faces (±X)** | `#535758` | `#456B33` | Darkest side shadow face |
 | **Background** | `#FFFDF7` | `#FFFDF7` | Warm off-white background |
-| **Grid Lines** | `#D1CFCA` | `#D1CFCA` | Thin cell dividers |
+| **Grid Lines** | `#DBD3C2` | `#DBD3C2` | Thin cell dividers |
 
 ---
 
@@ -155,3 +162,12 @@ The parametric voxel generator in `src/data/stoneWolfModel.ts` accepts pose targ
 - `'howling'`: Seated haunches with head tilted skyward and open jaw.
 
 To add new poses (e.g. `'running'`, `'sitting'`), extend `WolfPose` in `src/types.ts` and implement the parametric coordinate offset loop in `stoneWolfModel.ts`.
+
+---
+
+## Not yet implemented
+
+The following architectural components and migrations are not yet implemented:
+- The UI components (`src/components/TurnaroundCanvas.tsx`, `src/components/Interactive3DViewer.tsx`, `src/components/VoxelInspector.tsx`) still contain their own internal projection code and their own hex colours rather than using `src/core/iso.ts` and `src/core/palette.ts`.
+- No model JSON files exist yet in the workspace (models are generated procedurally by `src/data/stoneWolfModel.ts`).
+- The AI Studio scaffolding files (`metadata.json`, etc.) are still present in the repository.
