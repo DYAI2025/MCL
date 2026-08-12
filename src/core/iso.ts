@@ -17,6 +17,14 @@ function roundCoord(val: number): number {
   return Math.round(val * 100) / 100;
 }
 
+/**
+ * Projects a 3D isometric model onto a 2D plane with face culling and depth sorting.
+ * @param voxels Array of 3D voxel objects
+ * @param width Canvas width in pixels
+ * @param height Canvas height in pixels
+ * @param pad Padding as a fraction of the smaller canvas side (defaults to 0.15)
+ * @returns Array of projected faces ready for rendering
+ */
 export function projectModel(
   voxels: IsoVoxel[],
   width: number,
@@ -27,7 +35,8 @@ export function projectModel(
     return [];
   }
 
-  const padding = pad !== undefined ? pad : 20;
+  const padFraction = pad !== undefined ? pad : 0.15;
+  const padding = Math.min(width, height) * padFraction;
 
   // Build coordinate lookup map for O(1) neighbor culling
   const voxelMap = new Map<string, IsoVoxel>();
@@ -115,7 +124,7 @@ export function projectModel(
 
   const faces: Face[] = [];
 
-  for (const v of voxels) {
+  for (const v of voxelMap.values()) {
     const x = v.x;
     const y = v.y;
     const z = v.z;

@@ -29,8 +29,8 @@ export function runSelfCheck(): CheckResult[] {
   // Check 3
   const sideColor = faceColor('rock', 'side');
   results.push({
-    name: "faceColor('rock','side') is #535758",
-    ok: sideColor === '#535758',
+    name: "faceColor('rock','side') is #535759",
+    ok: sideColor === '#535759',
     detail: sideColor,
   });
 
@@ -57,6 +57,33 @@ export function runSelfCheck(): CheckResult[] {
     name: "projectModel() called twice with identical input returns byte-identical output",
     ok: run1 === run2,
     detail: run1 === run2 ? 'Byte-identical output' : 'Output mismatch',
+  });
+
+  // Check 6
+  let unknownIdThrew = false;
+  try {
+    faceColor('nonexistent_material' as any, 'top');
+  } catch (err) {
+    unknownIdThrew = true;
+  }
+  results.push({
+    name: "calling faceColor with an id that is not in the catalogue throws",
+    ok: unknownIdThrew,
+    detail: unknownIdThrew ? 'Threw Error as expected' : 'Did not throw',
+  });
+
+  // Check 7
+  const singleVoxel: IsoVoxel[] = [{ x: 0, y: 0, z: 0, material: 'rock' }];
+  const duplicateVoxels: IsoVoxel[] = [
+    { x: 0, y: 0, z: 0, material: 'rock' },
+    { x: 0, y: 0, z: 0, material: 'rock' },
+  ];
+  const facesSingle = projectModel(singleVoxel, 400, 400);
+  const facesDup = projectModel(duplicateVoxels, 400, 400);
+  results.push({
+    name: "a voxel list containing the same coordinate twice produces the same face count as the list containing it once",
+    ok: facesSingle.length === facesDup.length,
+    detail: `Single: ${facesSingle.length}, Duplicate: ${facesDup.length}`,
   });
 
   return results;

@@ -57,35 +57,34 @@ function computeFaceColor(hex: string, face: 'top' | 'front' | 'side'): string {
 
   const factor = face === 'top' ? 1.17 : 0.75;
 
-  let rScaled: number;
-  let gScaled: number;
-  let bScaled: number;
-
-  if (face === 'top') {
-    rScaled = Math.min(255, Math.round(r * factor));
-    gScaled = Math.min(255, Math.round(g * factor));
-    bScaled = Math.min(255, Math.round(b * factor));
-  } else {
-    rScaled = Math.round(r * factor);
-    gScaled = Math.round(g * factor);
-    bScaled = Math.floor(b * factor);
-  }
+  const rScaled = Math.min(255, Math.round(r * factor));
+  const gScaled = Math.min(255, Math.round(g * factor));
+  const bScaled = Math.min(255, Math.round(b * factor));
 
   return `#${toHex(rScaled)}${toHex(gScaled)}${toHex(bScaled)}`;
 }
 
 export function faceColor(material: MaterialId, face: 'top' | 'front' | 'side'): string {
-  const ref = MATERIALS[material] || '#6E7476';
+  const ref = MATERIALS[material];
+  if (!ref) {
+    throw new Error(`Unknown material id: "${material}"`);
+  }
   return computeFaceColor(ref, face);
 }
 
 export function elementColor(element: ElementId, face: 'top' | 'front' | 'side'): string {
-  const ref = ELEMENTS[element] || '#E85A1A';
+  const ref = ELEMENTS[element];
+  if (!ref) {
+    throw new Error(`Unknown element id: "${element}"`);
+  }
   return computeFaceColor(ref, face);
 }
 
 export function petrify(material: MaterialId): { top: string; front: string; side: string } {
-  const ref = MATERIALS[material] || '#6E7476';
+  const ref = MATERIALS[material];
+  if (!ref) {
+    throw new Error(`Unknown material id: "${material}"`);
+  }
   const r = parseInt(ref.slice(1, 3), 16);
   const g = parseInt(ref.slice(3, 5), 16);
   const b = parseInt(ref.slice(5, 7), 16);
