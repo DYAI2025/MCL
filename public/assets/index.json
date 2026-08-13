@@ -4,11 +4,12 @@
     "name": "Stone Wolf",
     "category": "creature",
     "truthStatus": "STATED",
-    "hash": "1969670c",
-    "image512": "/assets/stone-wolf-1969670c-512.svg",
-    "image128": "/assets/stone-wolf-1969670c-128.svg",
+    "hash": "9a01edd0",
+    "image512": "/assets/stone-wolf-9a01edd0-512.svg",
+    "image128": "/assets/stone-wolf-9a01edd0-128.svg",
     "materials": [
-      "rock"
+      "rock",
+      "moss"
     ],
     "voxelCount": 492
   }

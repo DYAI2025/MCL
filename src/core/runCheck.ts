@@ -1,7 +1,15 @@
+import fs from 'fs';
+import path from 'path';
 import { runSelfCheck } from './selfCheck';
 
 function main() {
-  const results = runSelfCheck();
+  const modelPath = path.join(process.cwd(), 'src', 'assets', 'models', 'stone-wolf.json');
+  let modelData: unknown;
+  if (fs.existsSync(modelPath)) {
+    modelData = JSON.parse(fs.readFileSync(modelPath, 'utf-8'));
+  }
+
+  const results = runSelfCheck(modelData);
   let failed = false;
 
   console.log('--- Running Core Self Checks ---');

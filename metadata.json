@@ -2,7 +2,5 @@
   "name": "Voxel Model Core Runtime",
   "description": "A portable, dependency-free core engine for loading, validating, and projecting 3D voxel models with face culling and SVG rendering.",
   "requestFramePermissions": [],
-  "majorCapabilities": [
-    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
-  ]
+  "majorCapabilities": []
 }

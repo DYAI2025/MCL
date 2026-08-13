@@ -1,7 +1,6 @@
 import { faceColor } from './palette';
 import { projectModel, IsoVoxel } from './iso';
 import { loadModel, modelToVoxels } from './model';
-import stoneWolfData from '../assets/models/stone-wolf.json';
 
 export interface CheckResult {
   name: string;
@@ -9,7 +8,7 @@ export interface CheckResult {
   detail: string;
 }
 
-export function runSelfCheck(): CheckResult[] {
+export function runSelfCheck(modelData?: unknown): CheckResult[] {
   const results: CheckResult[] = [];
 
   // Check 1
@@ -88,26 +87,49 @@ export function runSelfCheck(): CheckResult[] {
     detail: `Single: ${facesSingle.length}, Duplicate: ${facesDup.length}`,
   });
 
-  // Check 8: Fixed expected voxel count per pose
-  const model = loadModel(stoneWolfData);
-  const standingCount = modelToVoxels(model, 'standing').length;
-  const sleepingCount = modelToVoxels(model, 'sleeping').length;
-  const howlingCount = modelToVoxels(model, 'howling').length;
+  // Check 8: Fixed expected voxel and material counts per pose
+  if (modelData) {
+    const model = loadModel(modelData);
 
-  const expectedStanding = 492;
-  const expectedSleeping = 336;
-  const expectedHowling = 536;
+    const standingVoxels = modelToVoxels(model, 'standing');
+    const standingRock = standingVoxels.filter((v) => v.type === 'rock').length;
+    const standingMoss = standingVoxels.filter((v) => v.type === 'moss').length;
 
-  const check8Ok =
-    standingCount === expectedStanding &&
-    sleepingCount === expectedSleeping &&
-    howlingCount === expectedHowling;
+    const sleepingVoxels = modelToVoxels(model, 'sleeping');
+    const sleepingRock = sleepingVoxels.filter((v) => v.type === 'rock').length;
+    const sleepingMoss = sleepingVoxels.filter((v) => v.type === 'moss').length;
 
-  results.push({
-    name: "for each pose, voxel counts match expected values",
-    ok: check8Ok,
-    detail: `standing: ${standingCount}/${expectedStanding}, sleeping: ${sleepingCount}/${expectedSleeping}, howling: ${howlingCount}/${expectedHowling}`,
-  });
+    const howlingVoxels = modelToVoxels(model, 'howling');
+    const howlingRock = howlingVoxels.filter((v) => v.type === 'rock').length;
+    const howlingMoss = howlingVoxels.filter((v) => v.type === 'moss').length;
+
+    const expectedStanding = { rock: 467, moss: 25, total: 492 };
+    const expectedSleeping = { rock: 320, moss: 16, total: 336 };
+    const expectedHowling = { rock: 522, moss: 14, total: 536 };
+
+    const check8Ok =
+      standingVoxels.length === expectedStanding.total &&
+      standingRock === expectedStanding.rock &&
+      standingMoss === expectedStanding.moss &&
+      sleepingVoxels.length === expectedSleeping.total &&
+      sleepingRock === expectedSleeping.rock &&
+      sleepingMoss === expectedSleeping.moss &&
+      howlingVoxels.length === expectedHowling.total &&
+      howlingRock === expectedHowling.rock &&
+      howlingMoss === expectedHowling.moss;
+
+    results.push({
+      name: "for each pose, voxel counts and material breakdown match expected values",
+      ok: check8Ok,
+      detail: `standing: ${standingRock} rock / ${standingMoss} moss (total ${standingVoxels.length}), sleeping: ${sleepingRock} rock / ${sleepingMoss} moss (total ${sleepingVoxels.length}), howling: ${howlingRock} rock / ${howlingMoss} moss (total ${howlingVoxels.length})`,
+    });
+  } else {
+    results.push({
+      name: "for each pose, voxel counts and material breakdown match expected values",
+      ok: false,
+      detail: 'No model data provided or accessible for Check 8',
+    });
+  }
 
   return results;
 }

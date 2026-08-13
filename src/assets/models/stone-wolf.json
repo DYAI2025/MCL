@@ -72,7 +72,33 @@
       "boxes": [{ "x": -1, "y": 0, "z": -1, "width": 2, "height": 2, "depth": 2, "material": "rock" }]
     }
   ],
-  "accents": [],
+  "accents": [
+    { "at": [-2, 9, -4], "material": "moss" },
+    { "at": [-2, 9, -3], "material": "moss" },
+    { "at": [-2, 9, -2], "material": "moss" },
+    { "at": [-2, 9, -1], "material": "moss" },
+    { "at": [-2, 9, 0], "material": "moss" },
+    { "at": [-2, 9, 1], "material": "moss" },
+    { "at": [-2, 9, 2], "material": "moss" },
+    { "at": [-2, 9, 3], "material": "moss" },
+    { "at": [1, 9, -4], "material": "moss" },
+    { "at": [1, 9, -3], "material": "moss" },
+    { "at": [1, 9, -2], "material": "moss" },
+    { "at": [1, 9, -1], "material": "moss" },
+    { "at": [1, 9, 0], "material": "moss" },
+    { "at": [1, 9, 1], "material": "moss" },
+    { "at": [1, 9, 2], "material": "moss" },
+    { "at": [1, 9, 3], "material": "moss" },
+    { "at": [-1, 9, -4], "material": "moss" },
+    { "at": [-1, 9, -3], "material": "moss" },
+    { "at": [-1, 9, -2], "material": "moss" },
+    { "at": [-1, 9, -1], "material": "moss" },
+    { "at": [-1, 9, 0], "material": "moss" },
+    { "at": [-1, 9, 1], "material": "moss" },
+    { "at": [-1, 9, 2], "material": "moss" },
+    { "at": [-1, 9, 3], "material": "moss" },
+    { "at": [0, 9, -4], "material": "moss" }
+  ],
   "elementMask": [],
   "variants": {
     "sleeping": {
@@ -123,7 +149,24 @@
           "boxes": [{ "x": -1, "y": 0, "z": -1, "width": 3, "height": 2, "depth": 3, "material": "rock" }]
         }
       ],
-      "accents": []
+      "accents": [
+        { "at": [-3, 4, -2], "material": "moss" },
+        { "at": [-3, 4, -1], "material": "moss" },
+        { "at": [-3, 4, 0], "material": "moss" },
+        { "at": [-3, 4, 1], "material": "moss" },
+        { "at": [-3, 4, 2], "material": "moss" },
+        { "at": [-2, 4, -2], "material": "moss" },
+        { "at": [-2, 4, -1], "material": "moss" },
+        { "at": [-2, 4, 0], "material": "moss" },
+        { "at": [-2, 4, 1], "material": "moss" },
+        { "at": [-2, 4, 2], "material": "moss" },
+        { "at": [-1, 4, -2], "material": "moss" },
+        { "at": [-1, 4, -1], "material": "moss" },
+        { "at": [-1, 4, 0], "material": "moss" },
+        { "at": [-1, 4, 1], "material": "moss" },
+        { "at": [-1, 4, 2], "material": "moss" },
+        { "at": [0, 4, -2], "material": "moss" }
+      ]
     },
     "howling": {
       "parts": [
@@ -183,7 +226,22 @@
           "boxes": [{ "x": -1, "y": 0, "z": -1, "width": 2, "height": 2, "depth": 3, "material": "rock" }]
         }
       ],
-      "accents": []
+      "accents": [
+        { "at": [-3, 4, -3], "material": "moss" },
+        { "at": [-3, 4, -2], "material": "moss" },
+        { "at": [-3, 4, -1], "material": "moss" },
+        { "at": [-3, 4, 0], "material": "moss" },
+        { "at": [-3, 4, 1], "material": "moss" },
+        { "at": [-3, 4, 2], "material": "moss" },
+        { "at": [-3, 4, 3], "material": "moss" },
+        { "at": [2, 4, -3], "material": "moss" },
+        { "at": [2, 4, -2], "material": "moss" },
+        { "at": [2, 4, -1], "material": "moss" },
+        { "at": [2, 4, 0], "material": "moss" },
+        { "at": [2, 4, 1], "material": "moss" },
+        { "at": [2, 4, 2], "material": "moss" },
+        { "at": [2, 4, 3], "material": "moss" }
+      ]
     }
   }
 }

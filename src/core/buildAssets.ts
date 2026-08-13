@@ -4,6 +4,7 @@ import { validateModel, loadModel, modelToVoxels } from './model';
 import { projectModel, IsoVoxel } from './iso';
 import { facesToSVG } from './svg';
 import { contentHash } from './hash';
+import { paper } from './palette';
 
 function main() {
   const modelsDir = path.join(process.cwd(), 'src', 'assets', 'models');
@@ -61,10 +62,10 @@ function main() {
     }));
 
     const faces512 = projectModel(isoVoxels, 512, 512);
-    const svg512 = facesToSVG(faces512, 512, 512, '#FFFDF7');
+    const svg512 = facesToSVG(faces512, 512, 512, paper);
 
     const faces128 = projectModel(isoVoxels, 128, 128);
-    const svg128 = facesToSVG(faces128, 128, 128, '#FFFDF7');
+    const svg128 = facesToSVG(faces128, 128, 128, paper);
 
     const fileName512 = `${model.id}-${hash}-512.svg`;
     const fileName128 = `${model.id}-${hash}-128.svg`;
