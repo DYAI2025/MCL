@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
-import { createStoneWolfModel } from './data/stoneWolfModel';
+import { loadModel, modelToVoxels } from './core/model';
+import stoneWolfData from './assets/models/stone-wolf.json';
 import { TurnaroundCanvas } from './components/TurnaroundCanvas';
 import { Interactive3DViewer } from './components/Interactive3DViewer';
 import { VoxelInspector } from './components/VoxelInspector';
@@ -19,17 +20,15 @@ export default function App() {
   const [showDividers, setShowDividers] = useState<boolean>(true);
   const [isAnimated, setIsAnimated] = useState<boolean>(true);
 
-  // Generate model voxels based on selected pose and moss density
-  const voxels = useMemo(() => createStoneWolfModel(pose, mossDensity), [pose, mossDensity]);
+  const model = useMemo(() => loadModel(stoneWolfData), []);
+  const voxels = useMemo(() => modelToVoxels(model, pose), [model, pose]);
 
-  // Select appropriate AI Rendered Sheet image asset based on current pose
   const activeImageSrc = useMemo(() => {
     if (pose === 'sleeping') return sleepingImageSrc;
     if (pose === 'howling') return howlingImageSrc;
     return standingImageSrc;
   }, [pose]);
 
-  // Export handlers
   const handleExportPNG = () => {
     const canvas = document.querySelector('canvas');
     if (canvas) {
@@ -58,7 +57,6 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-[#FFFDF7] text-[#2C2E2F] font-sans antialiased selection:bg-[#5C8F45]/20">
-      {/* Editorial Header Bar */}
       <header className="bg-[#FFFDF7] border-b border-[#D1CFCA] sticky top-0 z-20 px-4 sm:px-8 py-4">
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
           <div className="flex items-center space-x-3">
@@ -75,7 +73,6 @@ export default function App() {
             </div>
           </div>
 
-          {/* Navigation View Switcher */}
           <div className="flex items-center bg-[#F4F2EB] p-1 border border-[#D1CFCA]">
             <button
               onClick={() => setViewMode('turnaround')}
@@ -116,7 +113,6 @@ export default function App() {
         </div>
       </header>
 
-      {/* Secondary Bar: Pose Selection & Idle Animation Control */}
       <div className="bg-[#F4F2EB] border-b border-[#D1CFCA] px-4 sm:px-8 py-3">
         <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-3 text-xs font-mono">
           <div className="flex items-center space-x-2 sm:space-x-4">
@@ -157,12 +153,9 @@ export default function App() {
         </div>
       </div>
 
-      {/* Main Editorial Container */}
       <main className="max-w-7xl mx-auto px-4 sm:px-8 py-8 space-y-8">
-        {/* VIEW 1: 4-VIEW TURNAROUND SHEET */}
         {viewMode === 'turnaround' && (
           <div className="space-y-4">
-            {/* Editorial Cell Headers Label Overlay */}
             <div className="bg-[#FFFDF7] border border-[#D1CFCA] p-3">
               <div className="grid grid-cols-4 w-full text-center divide-x divide-[#D1CFCA] text-[11px] font-mono tracking-widest text-[#585D5E] uppercase font-medium">
                 <div>Cell 1: Front</div>
@@ -172,7 +165,6 @@ export default function App() {
               </div>
             </div>
 
-            {/* The Pure Turnaround Canvas Frame */}
             <div className="bg-[#FFFDF7] border border-[#D1CFCA] p-2 sm:p-4 overflow-hidden">
               <TurnaroundCanvas
                 voxels={voxels}
@@ -185,7 +177,6 @@ export default function App() {
               />
             </div>
 
-            {/* Turnaround Sheet Quick Controls */}
             <div className="bg-[#FFFDF7] border border-[#D1CFCA] p-4 flex flex-wrap items-center justify-between gap-4 text-xs font-mono">
               <div className="flex items-center space-x-5">
                 <label className="flex items-center space-x-2 cursor-pointer select-none">
@@ -229,12 +220,10 @@ export default function App() {
           </div>
         )}
 
-        {/* VIEW 2: INTERACTIVE 3D ORBIT VIEW */}
         {viewMode === 'interactive3d' && (
           <Interactive3DViewer voxels={voxels} />
         )}
 
-        {/* VIEW 3: AI GENERATED IMAGE REFERENCE */}
         {viewMode === 'generated_image' && (
           <div className="bg-[#FFFDF7] border border-[#D1CFCA] p-6 space-y-4">
             <div className="flex items-center justify-between border-b border-[#D1CFCA] pb-4">
@@ -267,7 +256,6 @@ export default function App() {
           </div>
         )}
 
-        {/* BOTTOM PANEL: INSPECTOR, PALETTE, & EXPORT OPTIONS */}
         <VoxelInspector
           voxels={voxels}
           pose={pose}

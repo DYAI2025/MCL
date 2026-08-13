@@ -1,10 +1,12 @@
 import { faceColor } from './palette';
 import { projectModel, IsoVoxel } from './iso';
+import { loadModel, modelToVoxels } from './model';
+import stoneWolfData from '../assets/models/stone-wolf.json';
 
 export interface CheckResult {
   name: string;
   ok: boolean;
-  detail?: string;
+  detail: string;
 }
 
 export function runSelfCheck(): CheckResult[] {
@@ -35,24 +37,24 @@ export function runSelfCheck(): CheckResult[] {
   });
 
   // Check 4
-  const voxels3x3: IsoVoxel[] = [];
+  const cubeVoxels: IsoVoxel[] = [];
   for (let x = 0; x < 3; x++) {
     for (let y = 0; y < 3; y++) {
       for (let z = 0; z < 3; z++) {
-        voxels3x3.push({ x, y, z, material: 'rock' });
+        cubeVoxels.push({ x, y, z, material: 'rock' });
       }
     }
   }
-  const faces3x3 = projectModel(voxels3x3, 400, 400);
+  const faces = projectModel(cubeVoxels, 400, 400);
   results.push({
     name: "projectModel() on a solid 3×3×3 cube of rock returns exactly 27 faces, not 81 — proves culling works",
-    ok: faces3x3.length === 27,
-    detail: `Got ${faces3x3.length} faces`,
+    ok: faces.length === 27,
+    detail: `Got ${faces.length} faces`,
   });
 
   // Check 5
-  const run1 = JSON.stringify(projectModel(voxels3x3, 400, 400));
-  const run2 = JSON.stringify(projectModel(voxels3x3, 400, 400));
+  const run1 = JSON.stringify(projectModel(cubeVoxels, 400, 400));
+  const run2 = JSON.stringify(projectModel(cubeVoxels, 400, 400));
   results.push({
     name: "projectModel() called twice with identical input returns byte-identical output",
     ok: run1 === run2,
@@ -86,5 +88,28 @@ export function runSelfCheck(): CheckResult[] {
     detail: `Single: ${facesSingle.length}, Duplicate: ${facesDup.length}`,
   });
 
+  // Check 8: Fixed expected voxel count per pose
+  const model = loadModel(stoneWolfData);
+  const standingCount = modelToVoxels(model, 'standing').length;
+  const sleepingCount = modelToVoxels(model, 'sleeping').length;
+  const howlingCount = modelToVoxels(model, 'howling').length;
+
+  const expectedStanding = 492;
+  const expectedSleeping = 336;
+  const expectedHowling = 536;
+
+  const check8Ok =
+    standingCount === expectedStanding &&
+    sleepingCount === expectedSleeping &&
+    howlingCount === expectedHowling;
+
+  results.push({
+    name: "for each pose, voxel counts match expected values",
+    ok: check8Ok,
+    detail: `standing: ${standingCount}/${expectedStanding}, sleeping: ${sleepingCount}/${expectedSleeping}, howling: ${howlingCount}/${expectedHowling}`,
+  });
+
   return results;
 }
+
+export const runSelfChecks = runSelfCheck;

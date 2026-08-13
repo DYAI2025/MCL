@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { Voxel, WolfPose, MossDensity } from '../types';
-import { createStoneWolfModel } from '../data/stoneWolfModel';
+import { faceColor } from '../core/palette';
 
 interface TurnaroundCanvasProps {
   voxels: Voxel[];
@@ -39,12 +39,10 @@ export const TurnaroundCanvas: React.FC<TurnaroundCanvasProps> = ({
     let startTime: number | null = null;
 
     // Pre-calculate view-specific voxel variations if pose is provided
-    const activePose = (pose || 'standing') as WolfPose;
-    const activeMoss = (mossDensity || 'seams') as MossDensity;
-    const frontVoxels = createStoneWolfModel(activePose, activeMoss, 'front');
-    const leftVoxels = createStoneWolfModel(activePose, activeMoss, 'left');
-    const backVoxels = createStoneWolfModel(activePose, activeMoss, 'back');
-    const isoVoxelsModel = createStoneWolfModel(activePose, activeMoss, 'iso');
+    const frontVoxels = voxels;
+    const leftVoxels = voxels;
+    const backVoxels = voxels;
+    const isoVoxelsModel = voxels;
 
     const render = (timestamp: number) => {
       if (!startTime) startTime = timestamp;
@@ -78,15 +76,8 @@ export const TurnaroundCanvas: React.FC<TurnaroundCanvasProps> = ({
 
       // Shading colors
       const getColor = (type: Voxel['type'], face: 'top' | 'front_back' | 'side') => {
-        if (type === 'moss') {
-          if (face === 'top') return '#6BA351';
-          if (face === 'front_back') return '#5C8F45';
-          return '#4A7537';
-        } else {
-          if (face === 'top') return '#818789';
-          if (face === 'front_back') return '#585D5E';
-          return '#424647';
-        }
+        const faceType = face === 'front_back' ? 'front' : face;
+        return faceColor(type, faceType);
       };
 
       // Helper to compute model bounds

@@ -9,7 +9,8 @@
     "preview": "vite preview",
     "clean": "rm -rf dist server.js",
     "lint": "tsc --noEmit",
-    "check": "tsx src/core/runCheck.ts"
+    "check": "tsx src/core/runCheck.ts",
+    "build:assets": "tsx src/core/buildAssets.ts"
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.1.14",

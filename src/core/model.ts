@@ -1,15 +1,24 @@
-import { Voxel, VoxelType } from '../types';
+// Chosen approach for poses: Used a 'variants' field inside stone-wolf.json rather than separate files
+// to avoid duplicating unchanged parts across standing, sleeping, and howling poses.
+
+import { MaterialId, MATERIALS } from './palette';
+
+export interface Voxel {
+  x: number;
+  y: number;
+  z: number;
+  type: MaterialId;
+}
 
 export interface ModelBox {
-  id?: string;
+  name?: string;
   x: number;
   y: number;
   z: number;
   width: number;
   height: number;
   depth: number;
-  type?: VoxelType;
-  color?: string;
+  material: MaterialId;
 }
 
 export interface ModelPart {
@@ -17,17 +26,28 @@ export interface ModelPart {
   pivot?: [number, number, number];
   boxes: ModelBox[];
   children?: ModelPart[];
-  visible?: boolean;
+}
+
+export type ModelCategory = 'creature' | 'item' | 'wearable' | 'block' | 'structure' | 'avatar';
+export type TruthStatus = 'STATED' | 'TENTATIVE' | 'AMBIGUOUS' | 'CONFLICT' | 'OPEN';
+
+export interface VoxelModelVariant {
+  parts?: ModelPart[];
+  accents?: { at: [number, number, number]; material: MaterialId }[];
+  elementMask?: [number, number, number][];
 }
 
 export interface VoxelModel {
+  id: string;
   name: string;
-  version?: string;
-  author?: string;
-  description?: string;
-  gridDimensions?: [number, number, number];
+  category: ModelCategory;
+  truthStatus: TruthStatus;
+  up: 'y';
+  unit: 16;
+  accents: { at: [number, number, number]; material: MaterialId }[];
+  elementMask: [number, number, number][];
   parts: ModelPart[];
-  voxels?: Voxel[];
+  variants?: Record<string, VoxelModelVariant>;
 }
 
 export interface ValidationResult {
@@ -35,9 +55,6 @@ export interface ValidationResult {
   errors: string[];
 }
 
-/**
- * Validates whether an unknown input object conforms to the VoxelModel interface schema.
- */
 export function validateModel(data: unknown): ValidationResult {
   const errors: string[] = [];
 
@@ -47,34 +64,66 @@ export function validateModel(data: unknown): ValidationResult {
 
   const model = data as Record<string, unknown>;
 
+  if (typeof model.id !== 'string' || !model.id.trim()) {
+    errors.push('Model requires a valid "id" string.');
+  }
+
   if (typeof model.name !== 'string' || !model.name.trim()) {
     errors.push('Model requires a valid "name" string.');
   }
 
-  if ('parts' in model) {
-    if (!Array.isArray(model.parts)) {
-      errors.push('"parts" must be an array.');
-    } else {
-      model.parts.forEach((part, idx) => {
-        validatePart(part, `parts[${idx}]`, errors);
-      });
-    }
+  const validCategories: ModelCategory[] = ['creature', 'item', 'wearable', 'block', 'structure', 'avatar'];
+  if (!validCategories.includes(model.category as ModelCategory)) {
+    errors.push(`Model category must be one of: ${validCategories.join(', ')}`);
   }
 
-  if ('voxels' in model) {
-    if (!Array.isArray(model.voxels)) {
-      errors.push('"voxels" must be an array.');
-    } else {
-      model.voxels.forEach((v, idx) => {
-        if (!v || typeof v !== 'object') {
-          errors.push(`voxels[${idx}] must be an object.`);
-        } else {
-          const vox = v as Record<string, unknown>;
-          if (typeof vox.x !== 'number' || typeof vox.y !== 'number' || typeof vox.z !== 'number') {
-            errors.push(`voxels[${idx}] requires numeric x, y, z coordinates.`);
-          }
-        }
-      });
+  const validStatuses: TruthStatus[] = ['STATED', 'TENTATIVE', 'AMBIGUOUS', 'CONFLICT', 'OPEN'];
+  if (!validStatuses.includes(model.truthStatus as TruthStatus)) {
+    errors.push(`Model truthStatus must be one of: ${validStatuses.join(', ')}`);
+  }
+
+  if (model.up !== 'y') {
+    errors.push('Model up vector must be "y".');
+  }
+
+  if (model.unit !== 16) {
+    errors.push('Model unit must be 16.');
+  }
+
+  if (!Array.isArray(model.accents)) {
+    errors.push('Model accents must be an array.');
+  } else {
+    model.accents.forEach((acc: any, idx: number) => {
+      if (!acc || !Array.isArray(acc.at) || acc.at.length !== 3) {
+        errors.push(`accents[${idx}] must have a 3D coordinate "at".`);
+      }
+      if (!acc || !(acc.material in MATERIALS)) {
+        errors.push(`accents[${idx}] has unknown material "${acc?.material}".`);
+      }
+    });
+  }
+
+  if (!Array.isArray(model.elementMask)) {
+    errors.push('Model elementMask must be an array.');
+  }
+
+  if (!Array.isArray(model.parts) || model.parts.length === 0) {
+    errors.push('Model "parts" must be a non-empty array.');
+  } else {
+    validateSiblingParts(model.parts as ModelPart[], 'parts', errors);
+  }
+
+  if (errors.length === 0) {
+    // Validate element mask coverage percentage if present
+    const voxelCount = modelToVoxels(data as VoxelModel).length;
+    const maskLen = (model.elementMask as any[]).length;
+    if (maskLen > 0 && voxelCount > 0) {
+      const ratio = maskLen / voxelCount;
+      if (ratio < 0.15 || ratio > 0.25) {
+        errors.push(
+          `Element mask coverage ratio must be between 15% and 25% of opaque voxels (got ${(ratio * 100).toFixed(1)}%).`
+        );
+      }
     }
   }
 
@@ -84,52 +133,89 @@ export function validateModel(data: unknown): ValidationResult {
   };
 }
 
-function validatePart(part: unknown, path: string, errors: string[]) {
-  if (!part || typeof part !== 'object') {
-    errors.push(`${path} must be an object.`);
-    return;
-  }
+function validateSiblingParts(parts: ModelPart[], path: string, errors: string[]) {
+  const seenNames = new Set<string>();
 
-  const p = part as Record<string, unknown>;
+  parts.forEach((part, idx) => {
+    const partPath = `${path}[${idx}]`;
+    if (!part || typeof part !== 'object') {
+      errors.push(`${partPath} must be an object.`);
+      return;
+    }
 
-  if (typeof p.name !== 'string' || !p.name.trim()) {
-    errors.push(`${path} requires a valid "name" string.`);
-  }
+    if (typeof part.name !== 'string' || !part.name.trim()) {
+      errors.push(`${partPath} requires a valid "name" string.`);
+    } else {
+      if (seenNames.has(part.name)) {
+        errors.push(`Sibling part names must be unique; duplicate found: "${part.name}" at ${partPath}.`);
+      } else {
+        seenNames.add(part.name);
+      }
+    }
 
-  if (!Array.isArray(p.boxes)) {
-    errors.push(`${path}.boxes must be an array.`);
-  } else {
-    p.boxes.forEach((box, bIdx) => {
-      validateBox(box, `${path}.boxes[${bIdx}]`, errors);
-    });
-  }
+    if (!Array.isArray(part.boxes)) {
+      errors.push(`${partPath}.boxes must be an array.`);
+    } else {
+      let minX = Infinity, maxX = -Infinity;
+      let minY = Infinity, maxY = -Infinity;
+      let minZ = Infinity, maxZ = -Infinity;
 
-  if ('children' in p && Array.isArray(p.children)) {
-    p.children.forEach((child, cIdx) => {
-      validatePart(child, `${path}.children[${cIdx}]`, errors);
-    });
-  }
-}
+      part.boxes.forEach((box, bIdx) => {
+        const boxPath = `${partPath}.boxes[${bIdx}]`;
+        if (!box || typeof box !== 'object') {
+          errors.push(`${boxPath} must be an object.`);
+          return;
+        }
 
-function validateBox(box: unknown, path: string, errors: string[]) {
-  if (!box || typeof box !== 'object') {
-    errors.push(`${path} must be an object.`);
-    return;
-  }
+        if (!(box.material in MATERIALS)) {
+          errors.push(`${boxPath} has unknown material "${box.material}".`);
+        }
 
-  const b = box as Record<string, unknown>;
-  const requiredNums = ['x', 'y', 'z', 'width', 'height', 'depth'];
-  requiredNums.forEach((prop) => {
-    if (typeof b[prop] !== 'number') {
-      errors.push(`${path}.${prop} must be a number.`);
+        const dims = ['width', 'height', 'depth'] as const;
+        dims.forEach((d) => {
+          const val = box[d];
+          if (typeof val !== 'number' || !Number.isInteger(val) || val <= 0) {
+            errors.push(`${boxPath}.${d} must be a positive integer.`);
+          }
+        });
+
+        const coords = ['x', 'y', 'z'] as const;
+        coords.forEach((c) => {
+          if (typeof box[c] !== 'number' || !Number.isInteger(box[c])) {
+            errors.push(`${boxPath}.${c} must be an integer.`);
+          }
+        });
+
+        if (typeof box.x === 'number' && typeof box.width === 'number') {
+          minX = Math.min(minX, box.x);
+          maxX = Math.max(maxX, box.x + box.width);
+        }
+        if (typeof box.y === 'number' && typeof box.height === 'number') {
+          minY = Math.min(minY, box.y);
+          maxY = Math.max(maxY, box.y + box.height);
+        }
+        if (typeof box.z === 'number' && typeof box.depth === 'number') {
+          minZ = Math.min(minZ, box.z);
+          maxZ = Math.max(maxZ, box.z + box.depth);
+        }
+      });
+
+      // Pivot check: pivot must lie inside the bounding box of its own part (local space: 0 lies within min..max)
+      if (part.boxes.length > 0) {
+        if (minX > 0 || maxX < 0 || minY > 0 || maxY < 0 || minZ > 0 || maxZ < 0) {
+          errors.push(
+            `Part pivot point (origin) must lie inside its bounding box. Bounding box for "${part.name}" is [${minX}..${maxX}, ${minY}..${maxY}, ${minZ}..${maxZ}].`
+          );
+        }
+      }
+    }
+
+    if ('children' in part && Array.isArray(part.children) && part.children.length > 0) {
+      validateSiblingParts(part.children, `${partPath}.children`, errors);
     }
   });
 }
 
-/**
- * Parses and loads a VoxelModel from a JSON string or raw object.
- * Throws a detailed Error if validation fails.
- */
 export function loadModel(input: string | unknown): VoxelModel {
   let parsed: unknown;
 
@@ -151,15 +237,12 @@ export function loadModel(input: string | unknown): VoxelModel {
   return parsed as VoxelModel;
 }
 
-/**
- * Converts a structured VoxelModel parts array into a flat Voxel[] array.
- */
-export function modelToVoxels(model: VoxelModel): Voxel[] {
-  if (model.voxels && model.voxels.length > 0) {
-    return model.voxels;
-  }
+export function modelToVoxels(model: VoxelModel, variantName?: string): Voxel[] {
+  const voxelMap = new Map<string, Voxel>();
 
-  const voxelsMap = new Map<string, Voxel>();
+  const activeVariant = variantName && model.variants ? model.variants[variantName] : undefined;
+  const partsToProcess = activeVariant?.parts || model.parts;
+  const accentsToProcess = activeVariant?.accents || model.accents;
 
   function processPart(part: ModelPart, parentOffset: [number, number, number] = [0, 0, 0]) {
     const pivot = part.pivot || [0, 0, 0];
@@ -168,8 +251,6 @@ export function modelToVoxels(model: VoxelModel): Voxel[] {
     const offsetZ = parentOffset[2] + pivot[2];
 
     for (const box of part.boxes) {
-      const type: VoxelType = box.type || 'rock';
-
       for (let bx = 0; bx < box.width; bx++) {
         for (let by = 0; by < box.height; by++) {
           for (let bz = 0; bz < box.depth; bz++) {
@@ -178,7 +259,7 @@ export function modelToVoxels(model: VoxelModel): Voxel[] {
             const vz = Math.round(offsetZ + box.z + bz);
             const key = `${vx},${vy},${vz}`;
 
-            voxelsMap.set(key, { x: vx, y: vy, z: vz, type });
+            voxelMap.set(key, { x: vx, y: vy, z: vz, type: box.material });
           }
         }
       }
@@ -191,9 +272,17 @@ export function modelToVoxels(model: VoxelModel): Voxel[] {
     }
   }
 
-  for (const part of model.parts) {
+  for (const part of partsToProcess) {
     processPart(part);
   }
 
-  return Array.from(voxelsMap.values());
+  if (accentsToProcess) {
+    for (const accent of accentsToProcess) {
+      const [ax, ay, az] = accent.at;
+      const key = `${ax},${ay},${az}`;
+      voxelMap.set(key, { x: ax, y: ay, z: az, type: accent.material });
+    }
+  }
+
+  return Array.from(voxelMap.values());
 }

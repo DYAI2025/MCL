@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Voxel } from '../types';
+import { faceColor } from '../core/palette';
 import { RotateCcw, ZoomIn, ZoomOut, Box, Layers } from 'lucide-react';
 
 interface Interactive3DViewerProps {
@@ -97,9 +98,9 @@ export const Interactive3DViewer: React.FC<Interactive3DViewerProps> = ({
       const isSelected = hoveredVoxel && hoveredVoxel.x === v.x && hoveredVoxel.y === v.y && hoveredVoxel.z === v.z;
 
       // Base shading colors
-      let topColor = isMoss ? '#6BA351' : '#818789';
-      let frontColor = isMoss ? '#5C8F45' : '#585D5E';
-      let sideColor = isMoss ? '#4A7537' : '#424647';
+      let topColor = faceColor(v.type, 'top');
+      let frontColor = faceColor(v.type, 'front');
+      let sideColor = faceColor(v.type, 'side');
 
       if (highlightMoss && isMoss) {
         topColor = '#A2E38B';

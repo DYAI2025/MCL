@@ -1,26 +1,17 @@
-export type VoxelType = 'rock' | 'moss' | 'eye' | 'snout';
+import { Voxel } from './core/model';
+import { MaterialId } from './core/palette';
+
+export type VoxelType = MaterialId;
+export type { Voxel };
 
 export type WolfPose = 'standing' | 'sleeping' | 'howling';
+export type MossDensity = 'none' | 'seams' | 'light' | 'medium' | 'heavy' | 'lush';
+export type ViewMode = 'turnaround' | 'interactive3d' | 'generated_image';
 
-export interface Voxel {
-  x: number; // Left/Right
-  y: number; // Up/Down (0 is ground level)
-  z: number; // Back/Front
-  type: VoxelType;
+export interface ModelSpec {
+  name: string;
+  version: string;
+  dimensions: { x: number; y: number; z: number };
+  voxelCount: number;
+  poses: WolfPose[];
 }
-
-export type ViewMode = 'turnaround' | 'interactive3d' | 'inspector' | 'generated_image';
-
-export type MossDensity = 'none' | 'seams' | 'medium' | 'lush';
-
-export interface ColorPalette {
-  topFace: string;      // #6E7476 or brighter
-  frontBackFace: string; // #585D5E
-  sideFace: string;     // #424647
-  mossTop: string;       // #6BA351
-  mossFrontBack: string; // #5C8F45
-  mossSide: string;      // #4A7537
-  bg: string;            // #FFFDF7
-  gridLines: string;     // #E0DDD5
-}
-

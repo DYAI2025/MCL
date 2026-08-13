@@ -1,0 +1,15 @@
+[
+  {
+    "id": "stone-wolf",
+    "name": "Stone Wolf",
+    "category": "creature",
+    "truthStatus": "STATED",
+    "hash": "1969670c",
+    "image512": "/assets/stone-wolf-1969670c-512.svg",
+    "image128": "/assets/stone-wolf-1969670c-128.svg",
+    "materials": [
+      "rock"
+    ],
+    "voxelCount": 492
+  }
+]

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Voxel, MossDensity, WolfPose } from '../types';
+import { faceColor, paper } from '../core/palette';
 import { Download, Copy, Check, Info, Sparkles, Layers, Sliders, Activity } from 'lucide-react';
 
 interface VoxelInspectorProps {
@@ -32,11 +33,11 @@ export const VoxelInspector: React.FC<VoxelInspectorProps> = ({
   const totalCount = voxels.length;
 
   const colorPalette = [
-    { name: 'Rock Grey Base', hex: '#6E7476', desc: 'Main rock surface' },
-    { name: 'Front/Back Shadow', hex: '#585D5E', desc: 'Angled face shade' },
-    { name: 'Side Dark Shadow', hex: '#424647', desc: 'Side face darkest shade' },
-    { name: 'Moss Green Seams', hex: '#5C8F45', desc: 'Living moss in seams' },
-    { name: 'Warm Background', hex: '#FFFDF7', desc: 'Plain off-white background' },
+    { name: 'Rock Grey Base (Front)', hex: faceColor('rock', 'front'), desc: 'Front face rock surface' },
+    { name: 'Rock Top Highlight', hex: faceColor('rock', 'top'), desc: 'Top face rock surface' },
+    { name: 'Rock Side Shadow', hex: faceColor('rock', 'side'), desc: 'Side face dark shade' },
+    { name: 'Moss Green Base', hex: faceColor('moss', 'front'), desc: 'Living moss in seams' },
+    { name: 'Warm Background', hex: paper, desc: 'Plain off-white background' },
   ];
 
   const copyToClipboard = (hex: string) => {

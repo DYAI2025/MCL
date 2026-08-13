@@ -1,71 +1,56 @@
-# Stone Wolf Voxel Turnaround Studio
+# Voxel Model Core Runtime
 
-An interactive studio and technical exporter for blocky stone wolf voxel models. Designed in an **Editorial Aesthetic** with a plain warm off-white canvas (`#FFFDF7`), crisp cell dividers (`#D1CFCA`), and parametric pose generation.
-
----
-
-## Features
-
-- **4-View Turnaround Sheet**: High-resolution 4-cell horizontal layout featuring Front, Left Side, Back, and 30-degree Isometric orthographic views.
-- **Subtle Idle Animation**: Loopable breathing and gentle side-to-side swaying motion with a toggle control.
-- **Multiple Poses**: Switch seamlessly between **Standing**, **Sleeping** (curled up resting), and **Howling** (seated haunches with head skyward).
-- **Moss Seam Density**: Adjust living moss seam distribution from clean rock up to lush moss coverage.
-- **3D Orbit Inspector**: Interactive drag-to-rotate canvas to inspect voxel geometry from any angle with moss seam highlighting.
-- **Technical Asset Exporters**:
-  - High-Res Image (`.PNG`)
-  - Vector Graphic (`.SVG`)
-  - 3D Polygon Mesh (`.OBJ`)
-  - Voxel Coordinate Matrix (`.JSON`)
+A portable, dependency-free core engine for loading, validating, and projecting 3D voxel models with face culling, consistent palette shading, and SVG rendering.
 
 ---
 
-## Quick Start (Local Environment Setup)
+## Features & Core Modules
 
-### Prerequisites
-- **Node.js**: v18.0.0 or higher
-- **npm**: v9.0.0 or higher
+- **Palette & Shading (`src/core/palette.ts`)**:
+  - Catalogue of materials (`rock`, `stone`, `timber`, `steel`, `gold`, `fur`, `moss`, `soil`, `druhen`, `eye`, `snout`) and elemental overlays (`fire`, `ice`, `earth`, `air`).
+  - Face color computation with consistent `Math.round()` shading across `top`, `front`, and `side` faces.
+  - Strict validation that throws errors on unknown material or element IDs.
 
-### Installation & Run
+- **Isometric Projection & Culling (`src/core/iso.ts`)**:
+  - `projectModel()` projects 3D voxel matrices onto 2D isometric planes with O(1) neighbor face culling and depth sorting (painter's algorithm).
 
-1. **Clone or Extract Project**:
-   ```bash
-   cd stone-wolf-voxel-studio
-   ```
+- **Model Hierarchy & Validation (`src/core/model.ts`)**:
+  - Strict `VoxelModel` schema with parts, boxes, pivots, offset inheritance, and variant overrides.
+  - `validateModel()` checks structural constraints (positive integer dimensions, valid materials, non-empty parts, pivot inside part bounding box, element mask coverage).
+  - `modelToVoxels()` extracts voxel coordinate matrices for base models and pose variants.
 
-2. **Install Dependencies**:
-   ```bash
-   npm install
-   ```
+- **SVG Renderer (`src/core/svg.ts`)**:
+  - `facesToSVG()` converts projected face arrays into pure SVG string output with crisp-edges rendering.
 
-3. **Start Development Server**:
-   ```bash
-   npm run dev
-   ```
-   Open `http://localhost:3000` in your browser.
+- **Deterministic Content Hashing (`src/core/hash.ts`)**:
+  - FNV-1a 32-bit hash algorithm rendering 8-character lowercase hex hashes for asset versioning.
 
-4. **Lint & Verify Codebase**:
-   ```bash
-   npm run lint
-   ```
+- **Asset Builder Script (`src/core/buildAssets.ts`)**:
+  - Validates model JSON files in `src/assets/models/`, computes content hashes, generates 512×512 and 128×128 SVG previews in `public/assets/`, and produces `public/assets/index.json`.
 
-5. **Production Build**:
-   ```bash
-   npm run build
-   npm run start
-   ```
+- **Self Check Validation (`src/core/selfCheck.ts`, `src/core/runCheck.ts`)**:
+  - Verification suite checking color formulas, culling logic, determinism, error handling, and voxel counts.
 
 ---
 
-## Specification Palette & Shading
+## CLI Commands
 
-- **Top Faces (+Y)**: Brightest Highlight (`#818789` Rock / `#6BA351` Moss)
-- **Front/Back Faces (±Z)**: Mid-tone Shade (`#585D5E` Rock / `#5C8F45` Moss)
-- **Left/Right Faces (±X)**: Darkest Shadow (`#424647` Rock / `#4A7537` Moss)
-- **Background**: Warm Off-White (`#FFFDF7`)
-- **Cell Dividers**: Thin Grey Line (`#D1CFCA`)
+- **Run Self Check Suite**:
+  ```bash
+  npm run check
+  ```
 
----
+- **Build Public Assets**:
+  ```bash
+  npm run build:assets
+  ```
 
-## Documentation & Porting
+- **Type Check**:
+  ```bash
+  npm run lint
+  ```
 
-For detailed model JSON schema specifications and porting instructions into **Blender**, **Unity**, **Unreal Engine**, or **Three.js**, view [docs/PORTING.md](docs/PORTING.md).
+- **Development Server**:
+  ```bash
+  npm run dev
+  ```
